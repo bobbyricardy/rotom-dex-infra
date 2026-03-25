@@ -1,0 +1,7 @@
+elk_version: "8.12.0"
+apm_server_version: "7.17.0"
+grafana_version: "latest"
+cloudflared_tunnel_id: "ad96d311-2e75-4607-a6e1-2641689896fa"
+cloudflared_hostname_apm: "apm.bobbyricardy.dev"
+cloudflared_hostname_es: "es.bobbyricardy.dev"
+elk_stack_dir: "/home/{{ ansible_user }}/elk-stack"

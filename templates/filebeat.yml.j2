@@ -1,0 +1,15 @@
+filebeat.inputs:
+  - type: log
+    enabled: false
+    paths:
+      - /var/log/*.log
+
+output.elasticsearch:
+  hosts: ["elasticsearch:9200"]
+  username: "filebeat_internal"
+  password: "${FILEBEAT_PASSWORD}"
+
+setup.kibana:
+  host: "kibana:5601"
+  username: "filebeat_internal"
+  password: "${FILEBEAT_PASSWORD}"
