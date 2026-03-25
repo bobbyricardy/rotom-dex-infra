@@ -5,6 +5,7 @@ apm-server:
     allow_origins: ["*"]
   kibana:
     enabled: false
+  real_ip_header: "X-Forwarded-For"
 
 output.elasticsearch:
   hosts: ["elasticsearch:9200"]
