@@ -24,6 +24,8 @@
           - git
           - vim
           - cloud-guest-utils
+          - jq
+          - logrotate
         state: present
 
     # ─── Docker ─────────────────────────────────────────────────────────
@@ -167,6 +169,7 @@
       until: result.status == 200
       retries: 12
       delay: 10
+      when: not ansible_check_mode
 
     - name: Set default replicas to 0
       uri:
@@ -181,3 +184,32 @@
           settings:
             number_of_replicas: 0
         status_code: 200
+      when: not ansible_check_mode
+
+    # ─── SLI Collector ──────────────────────────────────────────────────
+    - name: Copy SLI collector script
+      template:
+        src: templates/sli-collector.sh.j2
+        dest: "/home/{{ ansible_user }}/sli-collector.sh"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
+
+    - name: Add SLI collector cron job
+      cron:
+        name: "rotom-dex SLI collector"
+        minute: "*/5"
+        job: "/home/{{ ansible_user }}/sli-collector.sh >> /home/{{ ansible_user }}/sli-collector.log 2>&1"
+        user: "{{ ansible_user }}"
+    
+    - name: Add logrotate config for SLI collector
+      copy:
+        dest: /etc/logrotate.d/sli-collector
+        content: |
+          /home/{{ ansible_user }}/sli-collector.log {
+              daily
+              rotate 7
+              compress
+              missingok
+              notifempty
+          }

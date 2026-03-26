@@ -1,0 +1,20 @@
+#!/bin/bash
+source {{ elk_stack_dir }}/.env
+
+DATE=$(date +%Y.%m.%d)
+INDEX="pulse-rotom-dex-${DATE}"
+
+HEALTH=$(curl -s {{ worker_url }}/api/health)
+
+DOC=$(echo $HEALTH | jq '. + {
+  "meta": {
+    "project": "rotom-dex",
+    "collector": "sli-collector",
+    "environment": "production"
+  }
+}')
+
+curl -s -u elastic:${ELASTIC_PASSWORD} \
+  -X POST "http://localhost:9200/${INDEX}/_doc" \
+  -H "Content-Type: application/json" \
+  -d "$DOC"
