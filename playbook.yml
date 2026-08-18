@@ -9,9 +9,8 @@
   tasks:
     # ─── System Prerequisites ───────────────────────────────────────────
     - name: Update apt cache
-      apt:
-        update_cache: yes
-        cache_valid_time: 3600
+      shell: apt-get update -qq
+      changed_when: false
 
     - name: Install required packages
       apt:
@@ -43,7 +42,7 @@
 
     - name: Add Docker repository
       apt_repository:
-        repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable"
+        repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
         state: present
         filename: docker
 
@@ -55,7 +54,7 @@
           - containerd.io
           - docker-compose-plugin
         state: present
-        update_cache: yes
+        update_cache: no
 
     - name: Add user to docker group
       user:
@@ -156,20 +155,14 @@
         state: started
         enabled: yes
 
-    # ─── Elasticsearch Index Template ───────────────────────────────────
+    # ─── Elasticsearch Index Template ───────────────────────────────────   
     - name: Wait for Elasticsearch to be ready
-      uri:
-        url: http://localhost:9200
-        method: GET
-        user: elastic
-        password: "{{ elastic_password }}"
-        force_basic_auth: yes
-        status_code: 200
+      shell: |
+        curl -s -u elastic:{{ elastic_password }} http://localhost:9200
       register: result
-      until: result.status == 200
-      retries: 12
-      delay: 10
-      when: not ansible_check_mode
+      until: result.rc == 0
+      retries: 24
+      delay: 15
 
     - name: Set default replicas to 0
       uri:
